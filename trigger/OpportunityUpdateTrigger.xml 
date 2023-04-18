@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Trigger>
+  <Name>OpportunityUpdateTrigger</Name>
+  <ObjectName>Opportunity</ObjectName>
+  <Operations>Update</Operations>
+  <TriggerType>before</TriggerType>
+  <Description>Trigger to update all opportunities related to an Account if their created date is more than 30 days old and their stage is not Close Won</Description>
+  <Code>
+    trigger OpportunityUpdateTrigger on Opportunity (before update) {
+    // Get list of all Accounts related to Opportunities
+    Set<Id> accountIds = new Set<Id>();
+    for (Opportunity opp : Trigger.new) {
+        accountIds.add(opp.AccountId); 
+    }
+    
+    // Query Opportunities related to Accounts
+    Map<Id, Opportunity> opportunityMap = new Map<Id, Opportunity>();
+    for (Opportunity opp : [SELECT Id, CreatedDate, StageName, AccountId
+                            FROM Opportunity
+                            WHERE AccountId IN :accountIds]) {
+        opportunityMap.put(opp.Id, opp);
+    }
+    
+    // Check if Opportunities should be updated
+    for (Opportunity opp : Trigger.new) {
+        Opportunity oldOpp = opportunityMap.get(opp.Id);
+        // Check if CreatedDate is more than 30 days old
+        if (Date.today().subtractDays(30) > oldOpp.CreatedDate
+            // Check if StageName is not Close Won
+            && oldOpp.StageName != 'Close Won') {
+            // Update Opportunity
+            opp.StageName = 'Close Lost';
+        }
+    }
+    
+    // Log changes
+    for (Opportunity opp : Trigger.new) {
+        Opportunity oldOpp = Trigger.oldMap.get(opp.Id);
+        if (opp.StageName != oldOpp.StageName) {
+            System.debug('Opportunity ' + opp.Id + ' changed from ' + oldOpp.StageName + ' to ' + opp.StageName + ' at ' + DateTime.now());
+        }
+    }
+}
+  </Code>
+</Trigger>
