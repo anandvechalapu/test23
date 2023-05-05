@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jira:trigger xmlns:jira="http://www.atlassian.com/schema/jira/trigger/1.0" 
+               name="Generate Python Code From User Stories" 
+               description="Generates Python code from entered user stories" 
+               key="GENERATE_PYTHON_CODE_FROM_USER_STORIES">
+  <jira:conditions>
+    <jira:condition field="project" operator="=">
+      <jira:value>JIRA TO PYTHON</jira:value>
+    </jira:condition>
+  </jira:conditions>
+  <jira:actions>
+    <jira:action 
+		name="Generate Python Code"
+		description="Generates Python code based on user story details"
+		key="GENERATE_PYTHON_CODE">
+		  <jira:parameter 
+			  name="requiredDetails" 
+			  type="text" 
+			  required="true" 
+			  description="Enter the required details for the user story" />
+	</jira:action>
+  </jira:actions>
+</jira:trigger>
